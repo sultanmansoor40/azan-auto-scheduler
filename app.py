@@ -7,6 +7,7 @@ import schedule
 from threading import Thread
 import tkinter as tk
 from tkinter import ttk
+import requests
 
 # 🗂️ For PyInstaller: return the path to bundled resources or normal path if not frozen
 def resource_path(relative_path):
@@ -55,7 +56,8 @@ def schedule_azan(time_str, prayer_name):
     def play_azan():
         print(f"\n🔊 Playing Azan for {prayer_name} at {time_str}")
         pygame.mixer.init()
-        audio_file = "test_audio.mp3"
+        #audio_file = "test_audio.mp3"
+        audio_file = "azan.mp3"
         if os.path.exists(audio_file):
             pygame.mixer.music.load(resource_path(audio_file))
             pygame.mixer.music.play()
@@ -77,19 +79,57 @@ def setup_test_azan_schedule():
         test_time = (now + timedelta(seconds=i * 20)).strftime("%H:%M:%S")  # 20-second intervals
         schedule_azan(test_time, prayer)
         #print(test_time, prayer)
+        
+
+# Function to fetch prayer times from AlAdhan API for given coordinates and date
+def get_prayer_times_by_city_country(date_str=None):
+    url = "https://api.aladhan.com/v1/timingsByCity/" + date_str
+    params = {
+        "city": "Kabul",
+        "country": "Afghanistan",
+        "method": 1,  # University of Islamic Sciences, Karachi
+        "school": 1   # Hanafi
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data["data"]["timings"]
+    else:
+        print("Error:", response.text)
+        return None        
+
+# Main execution: Fetch and schedule today's Azan times
+def setup_daily_azan_schedule():
+    # Format today’s date as DD-MM-YYYY
+    today = datetime.now().strftime("%d-%m-%Y")
+
+    # Get prayer times for today
+    timings = get_prayer_times_by_city_country(date_str=today)
+    
+
+    if timings:
+        # Choose which prayers to schedule (you can modify this list)
+        for prayer in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+            time_24h = timings[prayer]
+            # Schedule in 24-hour format as required by schedule library
+            schedule_azan(time_24h, prayer)
+
+        print("Azan times scheduled for today.")
+
     
 
 now = datetime.now()
 print("Start Time: " , now.strftime("%I:%M:%S %p"))
 
-setup_test_azan_schedule()
+#setup_test_azan_schedule()
+setup_daily_azan_schedule()
 
 
 def get_next_azan():
     now = datetime.now()
     future_azans = []
     for time_str, prayer_name in next_azans:
-        #below line for testing
         azan_time = str_to_datetime(time_str)
         if azan_time > now:
             future_azans.append((azan_time, prayer_name))
@@ -144,7 +184,8 @@ def run_schedule():
         else:
             now = datetime.now()
             last_azan_time = str_to_datetime(next_azans[-1][0])
-            last_azan_time = last_azan_time + timedelta(seconds=20) # 20 SECONDS PASSED AFTER LAST AZAN TIME OF THE DAY, THIS LINE IS FOR TEST SCHEDULES
+            #last_azan_time = last_azan_time + timedelta(seconds=20) # 20 SECONDS PASSED AFTER LAST AZAN TIME OF THE DAY, THIS LINE IS FOR TEST SCHEDULES
+            last_azan_time = last_azan_time + timedelta(minutes=5) # 5 MINUTES PASSED AFTER LAST AZAN TIME OF THE DAY, THIS LINE IS FOR REAL SCHEDULES
             if now > last_azan_time:
                 print("All Azans played. Exiting program.")
                 print("Now: " , now.strftime("%I:%M:%S %p"))
