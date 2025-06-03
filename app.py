@@ -76,7 +76,7 @@ def setup_test_azan_schedule():
     for i, prayer in enumerate(prayers):
         test_time = (now + timedelta(seconds=i * 20)).strftime("%H:%M:%S")  # 20-second intervals
         schedule_azan(test_time, prayer)
-        print(test_time, prayer)
+        #print(test_time, prayer)
     
 
 now = datetime.now()
