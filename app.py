@@ -4,6 +4,9 @@ import sys
 import time
 from datetime import datetime, timedelta
 import schedule
+from threading import Thread
+import tkinter as tk
+from tkinter import ttk
 
 # 🗂️ For PyInstaller: return the path to bundled resources or normal path if not frozen
 def resource_path(relative_path):
@@ -106,5 +109,34 @@ def run_schedule():
 
 
 
+# Start scheduler thread
+# if we dont use the threading for running schedule, the script gets stuck in the infinite loop, and anything after it (like the GUI window) will never run.
+thread = Thread(target=run_schedule, daemon=True)
+thread.start()
 
-run_schedule()
+
+# 🖼️ Setup the GUI window using Tkinter
+root = tk.Tk()
+root.title("Azan Countdown & Prayer Times")
+root.geometry("350x300")
+root.resizable(False, False)
+
+# 📅 Label to show exact time of next Azan
+scheduled_label = tk.Label(root, text="", font=("Helvetica", 12))
+scheduled_label.pack()
+
+# 📋 TreeView widget to display prayer schedule
+tree = ttk.Treeview(root, columns=("Prayer", "Time"), show="headings", height=7)
+tree.heading("Prayer", text="Prayer")
+tree.heading("Time", text="Time")
+tree.column("Prayer", width=120, anchor='center')
+tree.column("Time", width=100, anchor='center')
+tree.pack(pady=10)
+
+# ⏳ Insert all scheduled Azans into the table
+for time_str, prayer_name in next_azans:
+    tree.insert('', 'end', values=(prayer_name, format_time_12h(time_str)))
+    
+
+# 🖥️ Start the Tkinter event loop
+root.mainloop()
