@@ -84,6 +84,33 @@ print("Start Time: " , now.strftime("%I:%M:%S %p"))
 
 setup_test_azan_schedule()
 
+
+def get_next_azan():
+    now = datetime.now()
+    future_azans = []
+    for time_str, prayer_name in next_azans:
+        #below line for testing
+        azan_time = str_to_datetime(time_str)
+        if azan_time > now:
+            future_azans.append((azan_time, prayer_name))
+    return min(future_azans, default=(None, None))
+
+def update_gui():
+    next_time, next_prayer = get_next_azan()
+    if next_time:
+        remaining = next_time - datetime.now()
+        total_seconds = int(remaining.total_seconds())
+        if total_seconds < 0:
+            total_seconds = 0
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        countdown_label.config(
+            text=f"{next_prayer} in {hours:02d}:{minutes:02d}:{seconds:02d}"
+        )
+    else:
+        countdown_label.config(text="All Azans done")
+    root.after(1000, update_gui)
+
 # run scheduled events
 def run_schedule():
     
@@ -123,6 +150,10 @@ root.title("Azan Countdown & Prayer Times")
 root.geometry("350x300")
 root.resizable(False, False)
 
+
+countdown_label = tk.Label(root, text="Loading...", font=("Helvetica", 18))
+countdown_label.pack(pady=10)
+
 # 📅 Label to show exact time of next Azan
 scheduled_label = tk.Label(root, text="", font=("Helvetica", 12))
 scheduled_label.pack()
@@ -147,6 +178,9 @@ def on_close():
 
 # Attach the handler to the window close event
 root.protocol("WM_DELETE_WINDOW", on_close)
+
+
+update_gui()
 
 # 🖥️ Start the Tkinter event loop
 root.mainloop()
