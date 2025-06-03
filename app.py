@@ -95,6 +95,19 @@ def get_next_azan():
             future_azans.append((azan_time, prayer_name))
     return min(future_azans, default=(None, None))
 
+
+def refresh_table_highlight():
+    # Remove all current highlights
+    for item in tree.get_children():
+        tree.item(item, tags=())
+    # Highlight next azan row
+    next_time, next_prayer = get_next_azan()
+    if next_prayer:
+        for item in tree.get_children():
+            if tree.item(item, 'values')[0] == next_prayer:
+                tree.item(item, tags=('next',))
+                break
+
 def update_gui():
     next_time, next_prayer = get_next_azan()
     if next_time:
@@ -107,8 +120,11 @@ def update_gui():
         countdown_label.config(
             text=f"{next_prayer} in {hours:02d}:{minutes:02d}:{seconds:02d}"
         )
+        scheduled_label.config(text=f"Scheduled at: {next_time.strftime('%I:%M:%S %p')}")
     else:
         countdown_label.config(text="All Azans done")
+        scheduled_label.config(text="")
+    refresh_table_highlight()
     root.after(1000, update_gui)
 
 # run scheduled events
@@ -179,6 +195,9 @@ def on_close():
 # Attach the handler to the window close event
 root.protocol("WM_DELETE_WINDOW", on_close)
 
+
+# Tag styling for highlight
+tree.tag_configure('next', background='lightgreen')
 
 update_gui()
 
