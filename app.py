@@ -2,6 +2,7 @@ import os
 import pygame
 import sys
 import time
+from datetime import datetime, timedelta
 
 def resource_path(relative_path):
     if getattr(sys, 'frozen', False):
@@ -19,4 +20,12 @@ def play_azan():
     else:
         print(f"🚫 Audio file not found: {audio_file}")
         
-play_azan()
+def setup_test_azan_schedule():
+    now = datetime.now()
+    now = now + timedelta(seconds=20) # FIRST AZAAN SHOULD BE ALSO IN 20 Seconds LATER
+    prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+    for i, prayer in enumerate(prayers):
+        test_time = (now + timedelta(seconds=i * 20)).strftime("%H:%M:%S")  # 20-second intervals
+        print(prayer, test_time)
+    
+setup_test_azan_schedule()
