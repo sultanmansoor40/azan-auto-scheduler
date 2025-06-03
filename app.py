@@ -105,6 +105,8 @@ def run_schedule():
             if now > last_azan_time:
                 print("All Azans played. Exiting program.")
                 print("Now: " , now.strftime("%I:%M:%S %p"))
+                schedule.clear()        # Cancel all scheduled jobs
+                root.destroy()          # Close GUI
                 sys.exit(0)  # Exit with success code
 
 
