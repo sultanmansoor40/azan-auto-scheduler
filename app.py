@@ -139,6 +139,14 @@ tree.pack(pady=10)
 for time_str, prayer_name in next_azans:
     tree.insert('', 'end', values=(prayer_name, format_time_12h(time_str)))
     
+def on_close():
+    print("Window closed by user. Exiting...")
+    schedule.clear()        # Cancel all scheduled jobs
+    root.destroy()          # Close GUI
+    sys.exit(0)  # Exit the program completely
+
+# Attach the handler to the window close event
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 # 🖥️ Start the Tkinter event loop
 root.mainloop()
